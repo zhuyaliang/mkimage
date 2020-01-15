@@ -51,6 +51,7 @@ create_rootfs_env()
     list="bash ls microdnf"
     mkdir -p $fsdir/bin $fsdir/usr/ $fsdir/usr/bin/ $fsdir/usr/lib/rpm  $fsdir/usr/lib64 $fsdir/etc/pki $fsdir/proc
     ln -sf usr/lib64 $fsdir/lib64
+    rm -rf $fsdir/lib
     ln -sf usr/lib $fsdir/lib
     for i in $list
     do
@@ -71,10 +72,8 @@ create_rootfs_env()
     cp -rf org_env/etc/pki/rpm-gpg $fsdir/etc/pki/
 
     rm -rf $fsdir/bin/
-    rm -rf $fsdir/lib/
     cd $fsdir
     ln -s usr/bin bin
-    ln -s usr/lib lib
 
 }
 create_image_repo()
