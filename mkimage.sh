@@ -32,7 +32,7 @@ down_pkg()
 }
 unpacking_rpm()
 {
-    for pkg in $(ls);
+    for pkg in $(ls *.rpm);
     do
         rpm2cpio $pkg | cpio -div
     done
@@ -49,19 +49,19 @@ unpacking_rpm()
 create_rootfs_env()
 {
     list="bash ls microdnf"
-    mkdir -p $fsdir/bin $fsdir/lib64 $fsdir/usr/ $fsdir/usr/bin/ $fsdir/usr/lib/rpm  $fsdir/usr/lib64 $fsdir/etc/pki $fsdir/proc
+    mkdir -p $fsdir/bin $fsdir/usr/ $fsdir/usr/bin/ $fsdir/usr/lib/rpm  $fsdir/usr/lib64 $fsdir/etc/pki $fsdir/proc
+    ln -sf usr/lib64 $fsdir/lib64
+    ln -sf usr/lib $fsdir/lib
     for i in $list
     do
         cp -raf "mkimage/"$i "${fsdir}/usr/bin/"
     done
-    mkdir -p $fsdir/lib/x86_64-linux-gnu/
     
     cat ./mkimage/lib.list |while read line
     do
-        lib="org_env/"$line
+        lib="org_env"$line
         link="$(readlink $lib -f)"
         cp -rfa "$lib" "${fsdir}${line}"
-        cp -rfa "$link" "${fsdir}/lib64/"
         cp -rfa "$link" "${fsdir}/usr/lib64/"
     done
     
@@ -70,15 +70,10 @@ create_rootfs_env()
     cp -rf org_env/usr/lib/rpm/macros $fsdir/usr/lib/rpm/
     cp -rf org_env/etc/pki/rpm-gpg $fsdir/etc/pki/
 
-    /usr/bin/cp -rf $fsdir/lib64/* $fsdir/usr/lib64/
-    /usr/bin/cp -rf $fsdir/lib/* $fsdir/usr/lib/
-
-    rm -rf $fsdir/lib64/
     rm -rf $fsdir/bin/
     rm -rf $fsdir/lib/
     cd $fsdir
     ln -s usr/bin bin
-    ln -s usr/lib64 lib64
     ln -s usr/lib lib
 
 }
