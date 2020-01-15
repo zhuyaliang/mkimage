@@ -37,8 +37,13 @@ unpacking_rpm()
         rpm2cpio $pkg | cpio -div
     done
     /usr/bin/cp -rfa lib64/* usr/lib64/
+    cp -rf ../mkimage/libdnf.so*  usr/lib64/
+    cd usr/lib64/
+    unlink libcurl.so.4
+    ln -s libcurl.so.4.5.0 libcurl.so.4
+    cd -
     rm -rf lib64
-    ln -s /usr/lib64/ lib64 
+    ln -s usr/lib64/ lib64 
     cd ../
 }
 create_rootfs_env()
