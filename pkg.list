@@ -32,6 +32,7 @@ libxcrypt
 libxml2
 lua
 openEuler-gpg-keys
+openEuler-release
 openldap
 openssl
 pcre
