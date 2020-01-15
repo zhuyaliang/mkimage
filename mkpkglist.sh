@@ -11,6 +11,9 @@ do
         echo -e "$a" >> ./lib.list	
     done
 done
+echo rpm >> ./tmp.list
+echo openEuler-gpg-keys >> ./tmp.list
+echo openEuler-release >> ./tmp.list
 cat ./tmp.list | sort -k2n | uniq > ./pkg.list
 rm -rf ./tmp.list
 #cp -rf /usr/lib64/liblua-5.3.so $dir/usr/lib64/
