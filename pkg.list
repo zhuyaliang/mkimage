@@ -19,15 +19,12 @@ libassuan
 libcap
 libdb
 libffi
-libffi7
 libgcc
 libgpg-error
 libidn2
 libnghttp2
-libpeas
 libpsl
 librepo
-librpm8
 libselinux
 libsolv
 libssh

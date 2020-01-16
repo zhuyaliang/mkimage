@@ -35,6 +35,7 @@ unpacking_rpm()
     /usr/bin/cp -rfa lib64/* usr/lib64/
     cp -rf $work_dir/libdnf.so*  usr/lib64/
     cp -rf $work_dir/microdnf usr/bin/
+    cp -rf $work_dir/libpeas-1.0.so.0 usr/lib64/
     cd usr/lib64/
     unlink libcurl.so.4
     ln -s libcurl.so.4.5.0 libcurl.so.4
