@@ -1,6 +1,6 @@
 #!/bin/bash
 rm -rf *.list
-list="microdnf bash"
+list="microdnf bash vim"
 for i in $list
 do
     base=`which $i`
@@ -15,5 +15,9 @@ done
 echo rpm >> ./tmp.list
 echo openEuler-gpg-keys >> ./tmp.list
 echo openEuler-release >> ./tmp.list
+echo ncurses >> ./tmp.list 
+echo vim-enhanced >> ./tmp.list
+echo bash >> ./tmp.list
+echo coreutils >> ./tmp.list
 cat ./tmp.list | sort -k2n | uniq > ./pkg.list
 rm -rf ./tmp.list

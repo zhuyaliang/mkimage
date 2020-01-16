@@ -1,8 +1,9 @@
 #!/bin/bash
 
-repopath="http://192.168.39.230/centos8/isoft/RPMS/"
-sqlite="d4ac5c1e438377b1a701dbf086fe291d2c3007c3ef2d275f33e3824564abb994-primary.sqlite"
+repopath="http://119.3.219.20:82/openEuler:/Mainline/standard_aarch64/"
 fsdir=rootfs-$(date +%s)
+org_dir=org_dir-$(date +%s)
+work_dir=$(pwd)
 env_check()
 {
     cmd_list="rpm2cpio wget tar docker sqlite3 bunzip2 git" 
@@ -17,64 +18,66 @@ env_check()
 }
 down_pkg()
 {
-#    git clone https://github.com/zhuyaliang/mkimage
-    rm -rf org_env
-    mkdir org_env 
-    cd org_env
-    cat ../mkimage/pkg.list |while read pkg
-    do
-        pkgpath=$(sqlite3 ../$sqlite "select location_href from packages where name='$pkg'")
-        if [ -n "$pkgpath" ]; then
-            echo $pkgpath
-            wget $repopath$pkgpath
-        fi
-    done
+    echo "Download package...."
+    mkdir /tmp/$org_dir 
+    ./dl_pkg.py pkg.list /tmp/$org_dir
+    echo "Download package successful"
 }
 unpacking_rpm()
 {
+    cd /tmp/$org_dir/
+    echo "Unpacking ...."
     for pkg in $(ls *.rpm);
     do
-        rpm2cpio $pkg | cpio -div
+        rpm2cpio $pkg | cpio -div >> /dev/null 2>&1 
     done
+    echo "Unpacking successful"
     /usr/bin/cp -rfa lib64/* usr/lib64/
-    cp -rf ../mkimage/libdnf.so*  usr/lib64/
+    cp -rf $work_dir/libdnf.so*  usr/lib64/
+    cp -rf $work_dir/microdnf usr/bin/
     cd usr/lib64/
     unlink libcurl.so.4
     ln -s libcurl.so.4.5.0 libcurl.so.4
     cd -
     rm -rf lib64
     ln -s usr/lib64/ lib64 
-    cd ../
 }
 create_rootfs_env()
 {
-    list="bash ls microdnf"
-    mkdir -p $fsdir/bin $fsdir/usr/ $fsdir/usr/bin/ $fsdir/usr/lib/rpm  $fsdir/usr/lib64 $fsdir/etc/pki $fsdir/proc
+    cd /tmp/
+    echo "Create rootfs"
+    list="bash ls microdnf vim"
+    mkdir -p $fsdir/bin $fsdir/usr/ $fsdir/usr/bin/ $fsdir/usr/lib/rpm  $fsdir/usr/lib64 $fsdir/etc/pki $fsdir/proc $fsdir/usr/share/terminfo/x/
     ln -sf usr/lib64 $fsdir/lib64
     rm -rf $fsdir/lib
     ln -sf usr/lib $fsdir/lib
+
+    #复制二进制
     for i in $list
     do
-        cp -raf "mkimage/"$i "${fsdir}/usr/bin/"
+        cp -raf $org_dir/usr/bin/$i "${fsdir}/usr/bin/"
     done
-    
-    cat ./mkimage/lib.list |while read line
+    #复制二进制需要的动态库    
+    cat $work_dir/lib.list |while read line
     do
-        lib="org_env"$line
+        lib=$org_dir$line
         link="$(readlink $lib -f)"
         cp -rfa "$lib" "${fsdir}${line}"
         cp -rfa "$link" "${fsdir}/usr/lib64/"
     done
+    #复制dnf 需要的配置文件
+    cp -rf $org_dir/etc/os-release  $fsdir/etc/.
+    cp -rf $org_dir/usr/lib/rpm/rpmrc $fsdir/usr/lib/rpm/
+    cp -rf $org_dir/usr/lib/rpm/macros $fsdir/usr/lib/rpm/
+    cp -rf $org_dir/etc/pki/rpm-gpg $fsdir/etc/pki/
+	
+    #复制vim 需要的配置文件
+    cp -rf $org_dir/usr/share/terminfo/x/xterm-256color $fsdir/usr/share/terminfo/x/
     
-    cp -rf org_env/etc/os-release  $fsdir/etc/.
-    cp -rf org_env/usr/lib/rpm/rpmrc $fsdir/usr/lib/rpm/
-    cp -rf org_env/usr/lib/rpm/macros $fsdir/usr/lib/rpm/
-    cp -rf org_env/etc/pki/rpm-gpg $fsdir/etc/pki/
-
     rm -rf $fsdir/bin/
     cd $fsdir
     ln -s usr/bin bin
-
+    echo "Create rootfs successful"
 }
 create_image_repo()
 {
@@ -90,7 +93,9 @@ create_image_repo()
 }
 create_docker_image()
 {
-    sudo tar -C $fsdir -c . | sudo docker import - new_aarch64_os:latest
+    docker login -p zy930925 -u zhuyaliang
+    sudo tar -C $fsdir -c . | sudo docker import - zhuyaliang/new_aarch64_os:latest
+    #docker push zhuyaliang/new_aarch64_os:latest 
 }
 #main
 

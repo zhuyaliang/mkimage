@@ -1,7 +1,9 @@
 acl
 attr
+bash
 brotli
 bzip2
+coreutils
 curl
 cyrus-sasl
 e2fsprogs
@@ -10,13 +12,14 @@ glib2
 glibc
 gobject-introspection
 gpgme
+gpm-libs
 keyutils
 krb5
 libassuan
 libcap
 libdb
-libdnf
 libffi
+libffi7
 libgcc
 libgpg-error
 libidn2
@@ -24,6 +27,7 @@ libnghttp2
 libpeas
 libpsl
 librepo
+librpm8
 libselinux
 libsolv
 libssh
@@ -31,6 +35,7 @@ libunistring
 libxcrypt
 libxml2
 lua
+ncurses
 openEuler-gpg-keys
 openEuler-release
 openldap
@@ -40,6 +45,7 @@ pcre2
 popt
 rpm
 util-linux
+vim-enhanced
 xz
 zlib
 zstd
