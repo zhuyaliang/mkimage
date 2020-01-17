@@ -1,4 +1,6 @@
 acl
+apr
+apr-util
 attr
 bash
 brotli
@@ -8,11 +10,13 @@ curl
 cyrus-sasl
 e2fsprogs
 elfutils
+expat
 glib2
 glibc
 gobject-introspection
 gpgme
 gpm-libs
+httpd
 keyutils
 krb5
 libassuan

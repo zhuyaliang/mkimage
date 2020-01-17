@@ -1,6 +1,7 @@
 #!/bin/bash
 
-repopath="http://119.3.219.20:8080/Mainline/standard_aarch64/"
+repopath1="http://119.3.219.20:8080/Mainline/standard_aarch64/"
+repopath2="http://119.3.219.20:8080/Extras/standard_aarch64/"
 fsdir=rootfs-$(date +%s)
 org_dir=org_dir-$(date +%s)
 work_dir=$(pwd)
@@ -35,6 +36,8 @@ unpacking_rpm()
     /usr/bin/cp -rfa lib64/* usr/lib64/
     cp -rf $work_dir/libdnf.so*  usr/lib64/
     cp -rf $work_dir/microdnf usr/bin/
+    cp -rf $work_dir/httpd usr/bin/
+    cp -rf $work_dir/httpd.conf .
     cp -rf $work_dir/libpeas-1.0.so.0 usr/lib64/
     cd usr/lib64/
     unlink libcurl.so.4
@@ -78,6 +81,10 @@ create_rootfs_env()
     rm -rf $fsdir/bin/
     cd $fsdir
     ln -s usr/bin bin
+    cd bin
+    ln -s microdnf yum 
+    ln -s bash sh
+    cd ../
     echo "Create rootfs successful"
 }
 create_image_repo()
@@ -85,15 +92,47 @@ create_image_repo()
     mkdir etc/yum.repos.d/ -p
     touch etc/yum.repos.d/image_aarch64.repo
 
-    echo [openEuler] >> etc/yum.repos.d/image_aarch64.repo 
-    echo name=openEuler >> etc/yum.repos.d/image_aarch64.repo
-    echo baseurl=$repopath >> etc/yum.repos.d/image_aarch64.repo
+    echo [openEuler1] >> etc/yum.repos.d/image_aarch64.repo 
+    echo name=mainline >> etc/yum.repos.d/image_aarch64.repo
+    echo baseurl=$repopath1 >> etc/yum.repos.d/image_aarch64.repo
+    echo enabled=1 >> etc/yum.repos.d/image_aarch64.repo
     echo gpgcheck=0 >> etc/yum.repos.d/image_aarch64.repo
-    echo gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-openEuler >> etc/yum.repos.d/image_aarch64.repo
-    echo priority=1 >> etc/yum.repos.d/image_aarch64.repo
+    
+    echo [openEuler2] >> etc/yum.repos.d/image_aarch64.repo 
+    echo name=extras  >> etc/yum.repos.d/image_aarch64.repo
+    echo baseurl=$repopath2 >> etc/yum.repos.d/image_aarch64.repo
+    echo enabled=1 >> etc/yum.repos.d/image_aarch64.repo
+    echo gpgcheck=0 >> etc/yum.repos.d/image_aarch64.repo
     cd ../
 }
-create_docker_image()
+create_httpd_env()
+{
+    cp -raf $org_dir/usr/bin/httpd "${fsdir}/usr/bin/httpdd"
+    cp -raf $org_dir/usr/bin/tail "${fsdir}/usr/bin/"
+    cp -rfa $org_dir/usr/lib64/libaprutil-1.so.0* "${fsdir}/usr/lib64/"
+    cp -rfa $org_dir/usr/lib64/libexpat.so.1* "${fsdir}/usr/lib64/"
+    cp -rfa $org_dir/usr/lib64/libapr-1.so.0* "${fsdir}/usr/lib64/"
+    
+    mkdir -p $fsdir/modules $fsdir/logs $fsdir/conf
+    cp -rfa $org_dir/usr/lib64/httpd/modules/mod_authn_core.so "${fsdir}/modules/"
+    cp -rfa $org_dir/usr/lib64/httpd/modules/mod_authz_core.so "${fsdir}/modules/"
+    cp -rfa $org_dir/usr/lib64/httpd/modules/mod_dir.so "${fsdir}/modules/"
+    cp -rfa $org_dir/usr/lib64/httpd/modules/mod_unixd.so "${fsdir}/modules/"
+    cp -rfa $org_dir/usr/share/httpd/noindex/index.html "${fsdir}/"
+
+    cp -rfa $org_dir/httpd.conf "$fsdir/conf/"
+    echo "/bin/httpdd" >> "${fsdir}/usr/bin/httpd"
+    echo "tail" >> "${fsdir}/usr/bin/httpd"
+    chmod 777 "${fsdir}/usr/bin/httpd"
+     
+}
+create_httpd_image()
+{
+    docker login -p zy930925 -u zhuyaliang
+    sudo tar -C $fsdir -c . | sudo docker import - zhuyaliang/httpd_aarch64_os:latest
+    docker push zhuyaliang/httpd_aarch64_os:latest 
+}
+create_base_image()
 {
     docker login -p zy930925 -u zhuyaliang
     sudo tar -C $fsdir -c . | sudo docker import - zhuyaliang/new_aarch64_os:latest
@@ -106,4 +145,9 @@ down_pkg
 unpacking_rpm
 create_rootfs_env
 create_image_repo
-create_docker_image
+if [ "X$1" = "Xhttpd" ]; then
+    create_httpd_env 
+    create_httpd_image
+else
+    create_base_image
+fi
