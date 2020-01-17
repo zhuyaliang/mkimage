@@ -76,3 +76,5 @@
 /lib64/libpcre2-8.so.0
 /usr/lib64/libattr.so.1
 /lib64/libncurses.so.6
+/lib64/libffi.so.6
+/lib64/libuuid.so.1

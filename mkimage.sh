@@ -1,6 +1,6 @@
 #!/bin/bash
 
-repopath="http://119.3.219.20:82/openEuler:/Mainline/standard_aarch64/"
+repopath="http://119.3.219.20:8080/Mainline/standard_aarch64/"
 fsdir=rootfs-$(date +%s)
 org_dir=org_dir-$(date +%s)
 work_dir=$(pwd)
@@ -48,7 +48,7 @@ create_rootfs_env()
     cd /tmp/
     echo "Create rootfs"
     list="bash ls microdnf vim"
-    mkdir -p $fsdir/bin $fsdir/usr/ $fsdir/usr/bin/ $fsdir/usr/lib/rpm  $fsdir/usr/lib64 $fsdir/etc/pki $fsdir/proc $fsdir/usr/share/terminfo/x/
+    mkdir -p $fsdir/bin $fsdir/usr/ $fsdir/root/ $fsdir/usr/bin/ $fsdir/usr/lib/rpm  $fsdir/usr/lib64 $fsdir/etc/pki $fsdir/proc $fsdir/usr/share/terminfo/x/
     ln -sf usr/lib64 $fsdir/lib64
     rm -rf $fsdir/lib
     ln -sf usr/lib $fsdir/lib
@@ -73,7 +73,7 @@ create_rootfs_env()
     cp -rf $org_dir/etc/pki/rpm-gpg $fsdir/etc/pki/
 	
     #复制vim 需要的配置文件
-    cp -rf $org_dir/usr/share/terminfo/x/xterm-256color $fsdir/usr/share/terminfo/x/
+    cp -rf $org_dir/usr/share/terminfo/x/xterm $fsdir/usr/share/terminfo/x/
     
     rm -rf $fsdir/bin/
     cd $fsdir
@@ -84,6 +84,7 @@ create_image_repo()
 {
     mkdir etc/yum.repos.d/ -p
     touch etc/yum.repos.d/image_aarch64.repo
+
     echo [openEuler] >> etc/yum.repos.d/image_aarch64.repo 
     echo name=openEuler >> etc/yum.repos.d/image_aarch64.repo
     echo baseurl=$repopath >> etc/yum.repos.d/image_aarch64.repo
@@ -96,7 +97,7 @@ create_docker_image()
 {
     docker login -p zy930925 -u zhuyaliang
     sudo tar -C $fsdir -c . | sudo docker import - zhuyaliang/new_aarch64_os:latest
-    #docker push zhuyaliang/new_aarch64_os:latest 
+    docker push zhuyaliang/new_aarch64_os:latest 
 }
 #main
 
